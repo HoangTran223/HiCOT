@@ -3,7 +3,7 @@ from torch import nn
 import torch.nn.functional as F
 from ._model_utils import pairwise_euclidean_distance
 
-class DT_ETP(nn.Module):
+class DT(nn.Module):
     def __init__(self, sinkhorn_alpha, weight_loss_DT_ETP, OT_max_iter=5000, stopThr=.5e-2):
         super().__init__()
         self.sinkhorn_alpha = sinkhorn_alpha
