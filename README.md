@@ -33,7 +33,7 @@ python main.py --model HiCOT --dataset AGNews --num_topics 50 --dropout 0.2 --se
 - **Datasets**: `20NG`, `AGNews`, `IMDB`, `SearchSnippets`, `GoogleNews`
 - **Hierarchical Clustering Algorithms:**  
   - Set `method_CL` to one of the following: `HAC`, `HDBSCAN` 
-**Distance Metrics for Contrastive Learning:**  
+- **Distance Metrics for Contrastive Learning:**  
   - Set `metric_CL` to one of the following: `euclidean`, `cosine` 
 
 ## Acknowledgement
