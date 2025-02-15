@@ -2,11 +2,7 @@ from utils import config, log, miscellaneous, seed
 import os
 import numpy as np
 import basic_trainer
-from NeuroMax.NeuroMax import NeuroMax
-from FASTopic.FASTopic import FASTopic
-from ECRTM.ECRTM import ECRTM
-from IDEAS.Ideas import IDEAS
-from ETM.ETM import ETM
+from HiCOT.HiCOT import HiCOT
 import evaluations
 import datasethandler
 import scipy
