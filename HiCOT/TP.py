@@ -12,7 +12,6 @@ class TP(nn.Module):
         self.epsilon = 1e-6
         self.transp = None
 
-
     def forward(self, M, group):
         if self.weight_loss_TP <= 1e-6:
             return 0.

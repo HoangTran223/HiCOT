@@ -62,7 +62,7 @@ if __name__ == "__main__":
         DATA_DIR, args.dataset, "word_embeddings.npz")).toarray()
     
     if args.model == "HiCOT":
-        model = IDEAS(vocab_size=dataset.vocab_size,
+        model = HiCOT(vocab_size=dataset.vocab_size,
                         data_name=args.dataset,
                         num_topics=args.num_topics,
                         dropout=args.dropout,
