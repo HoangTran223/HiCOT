@@ -86,12 +86,13 @@ if __name__ == "__main__":
                         ) 
         model = model.to(args.device)
 
+        trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+        print(f"Number of trainable parameters: {trainable_params}")
+
     
     else:
         print(f"Wrong model")
 
-    trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
-    print(f"Number of trainable parameters: {trainable_params}")
 
     # Create a trainer
     trainer = basic_trainer.BasicTrainer(model, model_name=args.model,
