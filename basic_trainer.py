@@ -49,7 +49,7 @@ class BasicTrainer:
         if self.model_name == 'HiCOT':
             train_theta = self.test(dataset_handler.train_data, dataset_handler.doc_embeddings)
         else:
-            print("Wrong model!")
+            print(f"Wrong model")
 
         return top_words, train_theta
 
@@ -71,7 +71,7 @@ class BasicTrainer:
                 if self.model_name == 'HiCOT':
                     *inputs, indices, doc_embeddings = batch
                 else:
-                    print("Wrong model!")
+                    print(f"Wrong model")
 
                 batch_data = inputs
                 rst_dict = self.model(indices, batch_data, epoch_id=epoch, doc_embeddings=doc_embeddings)
