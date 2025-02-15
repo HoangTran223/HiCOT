@@ -74,7 +74,7 @@ class HiCOT(nn.Module):
         self.max_clusters = max_clusters
         self.vocab = vocab
         self.matrixP = None
-        self.DT = DT(weight_loss_DT_ETP, alpha_TP)
+        self.DT = DT(weight_loss_DT, alpha_TP)
 
         self.doc_embeddings = doc_embeddings.to(self.topic_embeddings.device)
         self.group_topic = None
