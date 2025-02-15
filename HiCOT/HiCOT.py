@@ -96,11 +96,11 @@ class HiCOT(nn.Module):
             distances = torch.cdist(self.topic_embeddings, self.topic_embeddings, p=2)
             distances = distances.detach().cpu().numpy()
 
-        if self.method_cl == 'HAC':
+        if self.method_CL == 'HAC':
             Z = linkage(distances, method='average', optimal_ordering=True) 
             group_id = fcluster(Z, t= self.max_clusters, criterion='maxclust') - 1
         
-        elif self.method_cl == 'HDBSCAN':
+        elif self.method_CL == 'HDBSCAN':
             clusterer = hdbscan.HDBSCAN(min_cluster_size=2, metric='euclidean')
             group_id = clusterer.fit_predict(distances)
         
@@ -159,11 +159,11 @@ class HiCOT(nn.Module):
             negative_topic_idxes = np.random.choice(negative_candidates, size=num_negatives, replace=False)
             negatives = self.topic_embeddings[negative_topic_idxes]
 
-            if self.metric_cl == 'euclidean':
+            if self.metric_CL == 'euclidean':
                 pos_distance = F.pairwise_distance(anchor, positive)
                 neg_distances = F.pairwise_distance(anchor.repeat(num_negatives, 1), negatives)
                 
-            elif self.metric_cl == 'cosine':
+            elif self.metric_CL == 'cosine':
                 pos_similarity = F.cosine_similarity(anchor, positive)
                 neg_similarities = F.cosine_similarity(anchor.repeat(num_negatives, 1), negatives)
                 pos_distance = 1 - pos_similarity
@@ -203,11 +203,11 @@ class HiCOT(nn.Module):
                 negative_word_idxes = np.random.choice(negative_candidates, size=num_negatives, replace=False)
                 negatives = self.word_embeddings[negative_word_idxes]
 
-                if self.metric_cl == 'euclidean':
+                if self.metric_CL == 'euclidean':
                     pos_distance = F.pairwise_distance(anchor, positive)
                     neg_distances = F.pairwise_distance(anchor.repeat(num_negatives, 1), negatives)
                 
-                elif self.metric_cl == 'cosine':
+                elif self.metric_CL == 'cosine':
                     pos_similarity = F.cosine_similarity(anchor, positive)
                     neg_similarities = F.cosine_similarity(anchor.repeat(num_negatives, 1), negatives)
                     pos_distance = 1 - pos_similarity
