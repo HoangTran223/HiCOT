@@ -73,11 +73,6 @@ class RawDatasetHandler:
 class BasicDatasetHandler:
     def __init__(self, dataset_dir, batch_size=200, read_labels=False, device='gpu', 
                     as_tensor=False, contextual_embed=False, doc2vec_size=384, args=None):
-        # train_bow: NxV
-        # test_bow: Nxv
-        # word_emeddings: VxD
-        # vocab: V, ordered by word id.
-
         self.args = args
         self.doc2vec_size = doc2vec_size    
         self.load_data(dataset_dir, read_labels)
@@ -125,12 +120,6 @@ class BasicDatasetHandler:
             self.contextual_embed_size = self.train_contextual_embed.shape[1]
 
         if as_tensor:
-            # if not contextual_embed: 
-            #     self.train_data = self.train_bow
-            #     self.test_data = self.test_bow
-            # else:
-            #     self.train_data = np.concatenate((self.train_bow, self.train_contextual_embed), axis=1)
-            #     self.test_data = np.concatenate((self.test_bow, self.test_contextual_embed), axis=1)
             self.train_data = self.train_bow
             self.test_data = self.test_bow
 
@@ -165,7 +154,7 @@ class BasicDatasetHandler:
                 """train_dataset = DatasetHandler(self.train_data)
                 test_dataset = DatasetHandler(self.test_data)"""
 
-                if args.model == "IDEAS":
+                if args.model == "HiCOT":
                     train_dataset = TensorDataset(self.train_data, self.train_indices, 
                                             torch.tensor(self.train_doc_embeddings, dtype=torch.float))
                     test_dataset = TensorDataset(self.test_data, self.test_indices, 
@@ -198,11 +187,3 @@ class BasicDatasetHandler:
             self.test_labels = np.loadtxt(f'{path}/test_labels.txt', dtype=int)
 
         self.vocab = file_utils.read_text(f'{path}/vocab.txt')
-
-
-
-#     def initialize_doc_embeddings_with_doc2vec(self, documents, embed_size):
-#         data = [TaggedDocument(words = doc, tags = [str(i)]) for i, doc in enumerate(documents)]
-#         model = Doc2Vec(data, vector_size=embed_size, window=5, min_count=5, workers=4, epochs=40)
-#         doc_embeddings = np.array([model.dv[str(i)] for i in range(len(documents))])
-#         return doc_embeddings

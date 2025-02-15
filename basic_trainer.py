@@ -10,7 +10,7 @@ import scipy
 
 
 class BasicTrainer:
-    def __init__(self, model, model_name='IDEAS', use_SAM=1, epochs=200, learning_rate=0.002, batch_size=200, lr_scheduler=None, lr_step_size=125, log_interval=5, 
+    def __init__(self, model, model_name='HiCOT', epochs=200, learning_rate=0.002, batch_size=200, lr_scheduler=None, lr_step_size=125, log_interval=5, 
                      device='cuda'):
         self.model = model
         self.model_name = model_name
@@ -24,9 +24,6 @@ class BasicTrainer:
         self.device = device
         self.logger = logging.getLogger('main')
 
-        ##
-        #self.model.create_group_topic()
-        ##
 
     def make_adam_optimizer(self,):
         args_dict = {
@@ -49,12 +46,10 @@ class BasicTrainer:
         self.train(dataset_handler, verbose)
         top_words = self.export_top_words(dataset_handler.vocab, num_top_words)
     
-        if self.model_name == 'FASTopic':
-            train_theta = self.test(dataset_handler.train_contextual_embed, dataset_handler.train_contextual_embed)
-        if self.model_name == 'IDEAS':
+        if self.model_name == 'HiCOT':
             train_theta = self.test(dataset_handler.train_data, dataset_handler.doc_embeddings)
         else:
-            train_theta = self.test(dataset_handler.train_data)
+            print("Wrong model!")
 
         return top_words, train_theta
 
@@ -73,17 +68,13 @@ class BasicTrainer:
             loss_rst_dict = defaultdict(float)
 
             for batch_id, batch in enumerate(dataset_handler.train_dataloader): 
-                # *inputs, indices = batch
-                if self.model_name == 'IDEAS':
+                if self.model_name == 'HiCOT':
                     *inputs, indices, doc_embeddings = batch
                 else:
-                    *inputs, indices = batch
+                    print("Wrong model!")
+
                 batch_data = inputs
-                # batch_data = inputs + [doc_embeddings]
-                if self.model_name == 'IDEAS':
-                    rst_dict = self.model(indices, batch_data, epoch_id=epoch, doc_embeddings=doc_embeddings)
-                else:
-                    rst_dict = self.model(indices, batch_data, epoch_id=epoch)
+                rst_dict = self.model(indices, batch_data, epoch_id=epoch, doc_embeddings=doc_embeddings)
                 batch_loss = rst_dict['loss']
 
                 batch_loss.backward()
@@ -96,9 +87,6 @@ class BasicTrainer:
                             len(batch_data['data'])
                     except:
                         loss_rst_dict[key] += rst_dict[key] * len(batch_data)
-            
-            # if(epoch % 30 == 0):
-            #     print(f"Loss_TP: {loss_rst_dict['loss_TP']}")
 
             if self.lr_scheduler:
                 lr_scheduler.step()
@@ -119,13 +107,7 @@ class BasicTrainer:
             self.model.eval()
             for idx in all_idx:
                 batch_input = input_data[idx]
-            
-                if self.model_name == 'FASTopic':
-                    batch_theta = self.model.get_theta(batch_input, train_data)
-                else:
-                    batch_theta = self.model.get_theta(batch_input)
-                # else:
-                #     batch_theta = self.model.get_theta(batch_input, doc_embeddings=train_data)
+                batch_theta = self.model.get_theta(batch_input)
                 theta.extend(batch_theta.cpu().tolist())
 
         theta = np.asarray(theta)
@@ -142,12 +124,8 @@ class BasicTrainer:
         return top_words
 
     def export_theta(self, dataset_handler):
-        if self.model_name == 'FASTopic':
-            train_theta = self.test(dataset_handler.train_contextual_embed, dataset_handler.train_contextual_embed)
-            test_theta = self.test(dataset_handler.test_contextual_embed, dataset_handler.train_contextual_embed)
-        else:
-            train_theta = self.test(dataset_handler.train_data)
-            test_theta = self.test(dataset_handler.test_data)
+        train_theta = self.test(dataset_handler.train_data)
+        test_theta = self.test(dataset_handler.test_data)
         return train_theta, test_theta
 
     def save_beta(self, dir_path):
@@ -188,15 +166,5 @@ class BasicTrainer:
 
             topic_dist = scipy.spatial.distance.cdist(topic_embeddings, topic_embeddings)
             np.save(os.path.join(dir_path, 'topic_dist.npy'), topic_dist)
-
-        # if hasattr(self.model, 'group_embeddings'):
-        #     group_embeddings = self.model.group_embeddings.detach().cpu().numpy()
-        #     np.save(os.path.join(dir_path, 'group_embeddings.npy'),
-        #             group_embeddings)
-        #     self.logger.info(
-        #         f'group_embeddings size: {group_embeddings.shape}')
-
-        #     group_dist = scipy.spatial.distance.cdist(group_embeddings, group_embeddings)
-        #     np.save(os.path.join(dir_path, 'group_dist.npy'), group_dist)
 
         return word_embeddings, topic_embeddings

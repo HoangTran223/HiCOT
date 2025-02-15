@@ -13,39 +13,26 @@ def add_dataset_argument(parser):
 
 def add_model_argument(parser):
     parser.add_argument('--model', type=str, help='model name')
-    parser.add_argument('--epoch_threshold', type=int, help='use epoch_threshold')
-    parser.add_argument('--use_SAM', type=int, help='use SAM')
-    parser.add_argument('--SAM_name', type=str, help='SAM Variant')
     parser.add_argument('--num_topics', type=int, default=50)
-    parser.add_argument('--num_groups', type=int, default=50)
     parser.add_argument('--dropout', type=float, default=0.2)
-    parser.add_argument('--use_pretrainWE', action='store_true',
-                        default=False, help='Enable use_pretrainWE mode')
+    parser.add_argument('--use_pretrainWE', action='store_true', default=False, help='Enable use_pretrainWE mode')
     parser.add_argument('--weight_ECR', type=float, default=40.)
-    parser.add_argument('--weight_GR', type=float, default=1.)
     parser.add_argument('--alpha_ECR', type=float, default=20.)
-    parser.add_argument('--alpha_GR', type=float, default=5.)
-    parser.add_argument('--weight_OT', type=float, default=100.)
-    parser.add_argument('--weight_InfoNCE', type=float, default=50.)
 
-    #
-    parser.add_argument('--DT_alpha', type=float, default=3.)
+    parser.add_argument('--alpha_DT', type=float, default=3.)
     parser.add_argument('--alpha_TP', type=float, default=20.)
     parser.add_argument('--weight_loss_TP', type=float, default=250.)
-    parser.add_argument('--weight_loss_DT_ETP', type=float, default=250.)
-    parser.add_argument('--weight_loss_cl_large', type=float, default=1.)
-    parser.add_argument('--num_large_clusters', type=int, default=5)
-    parser.add_argument('--threshold_epochs', type=int, default=10)  
+    parser.add_argument('--weight_loss_DT', type=float, default=250.)
+    parser.add_argument('--weight_loss_CLC', type=float, default=1.)
+    parser.add_argument('--max_clusters', type=int, default=50)
+    parser.add_argument('--threshold_epoch', type=int, default=10)  
     parser.add_argument('--threshold_cluster', type=int, default=10)  
-    parser.add_argument('--weight_loss_cl_words', type=float, default=1.0)
-    parser.add_argument('--method_cl', type=str, default='HAC')
-    parser.add_argument('--metric_cl', type=str, default='euclidean')
-    
-
+    parser.add_argument('--weight_loss_CLT', type=float, default=1.0)
+    parser.add_argument('--method_CL', type=str, default='HAC')
+    parser.add_argument('--metric_CL', type=str, default='euclidean')
     parser.add_argument('--beta_temp', type=float, default=0.2)
-    parser.add_argument('--render', type=int, default=0)
-    parser.add_argument('--step', type=int, default=150)
-    parser.add_argument('--alpha_range', type=float, default=1.5)
+
+
 
 def add_eval_argument(parser):
     parser.add_argument('--tune_SVM', action='store_true', default=False)

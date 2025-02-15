@@ -51,14 +51,11 @@ if __name__ == "__main__":
     seed.seedEverything(args.seed)
     print(args)
 
-    if args.dataset in ['YahooAnswers', '20NG', 'AGNews', 'IMDB', 'SearchSnippets', 'StackOverflow', 'GoogleNews']:
+    if args.dataset in ['YahooAnswers', '20NG', 'AGNews', 'IMDB', 'SearchSnippets', 'GoogleNews']:
         read_labels = True
     else:
         read_labels = False
     print(f"read labels = {read_labels}")
-    cluster_distribution = np.load(os.path.join(DATA_DIR, str(args.dataset), "LLM", "cluster_distribution.npz"))['arr_0']
-    cluster_mean = np.load(os.path.join(DATA_DIR, str(args.dataset), "LLM", "cluster_mean.npz"))['arr_0']
-    cluster_label = [np.argmax(cluster_distribution[i]) for i in range(len(cluster_distribution))]
 
     ## Set contextual_embed = False
     dataset = datasethandler.BasicDatasetHandler(
@@ -68,92 +65,39 @@ if __name__ == "__main__":
     pretrainWE = scipy.sparse.load_npz(os.path.join(
         DATA_DIR, args.dataset, "word_embeddings.npz")).toarray()
     
-    if args.model == 'NeuroMax':
-        model = NeuroMax(vocab_size=dataset.vocab_size,
-                        data_name=args.dataset,
-                        num_topics=args.num_topics,
-                        num_groups=args.num_groups,
-                        dropout=args.dropout,
-                        cluster_distribution=cluster_distribution,
-                        cluster_mean=cluster_mean,
-                        cluster_label=cluster_label,
-                        pretrained_WE=pretrainWE if args.use_pretrainWE else None,
-                        weight_loss_GR=args.weight_GR,
-                        weight_loss_ECR=args.weight_ECR,
-                        alpha_ECR=args.alpha_ECR,
-                        alpha_GR=args.alpha_GR,
-                        weight_loss_OT=args.weight_OT,
-                        weight_loss_InfoNCE=args.weight_InfoNCE,
-                        beta_temp=args.beta_temp,
-                        device=args.device)
-    elif args.model == 'FASTopic':
-        model = FASTopic(vocab_size=dataset.vocab_size,
-                        embed_size=dataset.contextual_embed_size,
-                        num_topics=args.num_topics,
-                        cluster_distribution=cluster_distribution,
-                        cluster_mean=cluster_mean,
-                        cluster_label=cluster_label,
-                        weight_loss_OT=args.weight_OT,
-                        device=args.device)
-    elif args.model == 'ECRTM':
-        model = ECRTM(vocab_size=dataset.vocab_size,
-                        num_topics=args.num_topics,
-                        dropout=args.dropout,
-                        cluster_distribution=cluster_distribution,
-                        cluster_mean=cluster_mean,
-                        cluster_label=cluster_label,
-                        pretrained_WE=pretrainWE if args.use_pretrainWE else None,
-                        weight_loss_ECR=args.weight_ECR,
-                        alpha_ECR=args.alpha_ECR,
-                        weight_OT=args.weight_OT,
-                        beta_temp=args.beta_temp,
-                        device=args.device)
-    elif args.model == 'ETM':
-        model = ETM(vocab_size=dataset.vocab_size,
-                        num_topics=args.num_topics,
-                        dropout=args.dropout,
-                        cluster_distribution=cluster_distribution,
-                        cluster_mean=cluster_mean,
-                        cluster_label=cluster_label,
-                        pretrained_WE=pretrainWE if args.use_pretrainWE else None,
-                        weight_OT=args.weight_OT,
-                        device=args.device
-                        )
-    elif args.model == "IDEAS":
-        num_documents = len(dataset.train_dataloader.dataset)
-        print(f"so luong: {num_documents}")
+    if args.model == "HiCOT":
         model = IDEAS(vocab_size=dataset.vocab_size,
                         data_name=args.dataset,
                         num_topics=args.num_topics,
-                        num_groups=args.num_groups,
                         dropout=args.dropout,
-                        cluster_distribution=cluster_distribution,
-                        cluster_mean=cluster_mean,
-                        cluster_label=cluster_label,
                         pretrained_WE=pretrainWE if args.use_pretrainWE else None,
                         weight_loss_ECR=args.weight_ECR,
-                        weight_loss_TP=args.weight_loss_TP,
-                        weight_loss_DT_ETP= args.weight_loss_DT_ETP,
-                        alpha_TP=args.alpha_TP,
                         alpha_ECR=args.alpha_ECR,
+                        weight_loss_TP=args.weight_loss_TP,
+                        weight_loss_DT= args.weight_loss_DT,
+                        alpha_TP=args.alpha_TP,
+                        alpha_DT=args.alpha_DT,
                         beta_temp=args.beta_temp,
                         vocab=dataset.vocab,
-                        weight_loss_cl_large=args.weight_loss_cl_large,
-                        num_large_clusters=args.num_large_clusters,
-                        weight_loss_cl_words = args.weight_loss_cl_words,
-                        threshold_epochs=args.threshold_epochs,
+                        weight_loss_CLC=args.weight_loss_CLT,
+                        max_clusters=args.max_clusters,
+                        weight_loss_CLT = args.weight_loss_CLT,
+                        threshold_epoch=args.threshold_epoch,
                         threshold_cluster=args.threshold_cluster,
                         doc_embeddings=torch.tensor(dataset.train_doc_embeddings).float().to(args.device),
-                        method_cl=args.method_cl,
-                        metric_cl=args.metric_cl
+                        method_CL=args.method_CL,
+                        metric_CL=args.metric_CL
                         ) 
-
         model = model.to(args.device)
+
+    
+    else:
+        print(f"Wrong model")
 
     trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
     print(f"Number of trainable parameters: {trainable_params}")
 
-    # create a trainer
+    # Create a trainer
     trainer = basic_trainer.BasicTrainer(model, model_name=args.model,
                                             epochs=args.epochs,
                                             learning_rate=args.lr,
@@ -164,14 +108,13 @@ if __name__ == "__main__":
                                             )
 
 
-    # train the model
+    # Train the model
     trainer.train(dataset)
 
     # Save embeddings
     trainer.save_embeddings(current_run_dir)
-    #
 
-    # save beta, theta and top words
+    # Save beta, theta and top words
     beta = trainer.save_beta(current_run_dir)
     train_theta, test_theta = trainer.save_theta(dataset, current_run_dir)
     top_words_10 = trainer.save_top_words(
@@ -183,7 +126,7 @@ if __name__ == "__main__":
     top_words_25 = trainer.save_top_words(
         dataset.vocab, 25, current_run_dir)
 
-    # argmax of train and test theta
+    # Argmax of train and test theta
     train_theta_argmax = train_theta.argmax(axis=1)
     test_theta_argmax = test_theta.argmax(axis=1)        
 
@@ -192,46 +135,19 @@ if __name__ == "__main__":
     print(f"TD_15: {TD_15:.5f}")
 
 
-    # evaluating clustering
+    # Evaluating clustering
     if read_labels:
         clustering_results = evaluations.evaluate_clustering(
             test_theta, dataset.test_labels)
         print(f"NMI: ", clustering_results['NMI'])
         print(f'Purity: ', clustering_results['Purity'])
     
-
-    # evaluate classification
-    if read_labels:
-        classification_results = evaluations.evaluate_classification(
-            train_theta, test_theta, dataset.train_labels, dataset.test_labels, tune=args.tune_SVM)
-        print(f"Accuracy: ", classification_results['acc'])
-        print(f"Macro-f1", classification_results['macro-F1'])
-    
     
     TC_15_list, TC_15 = evaluations.topic_coherence.TC_on_wikipedia(
         os.path.join(current_run_dir, 'top_words_15.txt'))
     print(f"TC_15: {TC_15:.5f}")
 
-    
-    # NPMI_train_10_list, NPMI_train_10 = evaluations.compute_topic_coherence(
-    #     dataset.train_texts, dataset.vocab, top_words_10, cv_type='c_npmi')
-    # print(f"NPMI_train_10: {NPMI_train_10:.5f}")
-
-    # NPMI_train_10_list, NPMI_train_10 = evaluations.compute_topic_coherence(
-    #     dataset.train_texts, dataset.vocab, top_words_10, cv_type='c_npmi')
-
-    # NPMI_wiki_10_list, NPMI_wiki_10 = evaluations.topic_coherence.TC_on_wikipedia(
-    #     os.path.join(current_run_dir, 'top_words_10.txt'), cv_type='NPMI')
-    # print(f"NPMI_wiki_10: {NPMI_wiki_10:.5f}")
-
-    # Cp_wiki_10_list, Cp_wiki_10 = evaluations.topic_coherence.TC_on_wikipedia(
-    #     os.path.join(current_run_dir, 'top_words_10.txt'), cv_type='C_P')
-    # print(f"Cp_wiki_10: {Cp_wiki_10:.5f}")
-    
-
-
-
-    filename = f"results_{args.dataset}_topics{args.num_topics}_epochs{args.epochs}_w_ECR{args.weight_ECR}_w_TP{args.weight_loss_TP}_w_DTETP{args.weight_loss_DT_ETP}_w_clwords{args.weight_loss_cl_words}_w_clcluster{args.weight_loss_cl_large}_alpha_TP{args.alpha_TP}_alpha_ECR{args.alpha_ECR}_threshold_epochs{args.threshold_epochs}_beta_temp{args.beta_temp}_dropout{args.dropout}.txt"
+    filename = f"results_{args.dataset}_topics{args.num_topics}_epochs{args.epochs}_w_ECR{args.weight_ECR}_w_TP{args.weight_loss_TP}_w_DTETP{args.weight_loss_DT_ETP}_w_clwords{args.weight_loss_cl_words}_w_clcluster{args.weight_loss_cl_large}_threshold_epochs{args.threshold_epochs}.txt"
     filename = filename.replace(' ', '_')
     filepath = os.path.join(current_run_dir, filename)
     with open(filepath, 'w') as f:
