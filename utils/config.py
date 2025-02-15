@@ -8,7 +8,7 @@ def new_parser(name=None):
 def add_dataset_argument(parser):
     parser.add_argument('--dataset', type=str,
                         help='dataset name, currently support datasets are: \
-                            YahooAnswers', default='YahooAnswers')
+                            AGNews', default='AGNews')
 
 
 def add_model_argument(parser):
@@ -24,7 +24,7 @@ def add_model_argument(parser):
     parser.add_argument('--weight_loss_TP', type=float, default=250.)
     parser.add_argument('--weight_loss_DT', type=float, default=250.)
     parser.add_argument('--weight_loss_CLC', type=float, default=1.)
-    parser.add_argument('--max_clusters', type=int, default=50)
+    parser.add_argument('--max_clusters', type=int, default=9)
     parser.add_argument('--threshold_epoch', type=int, default=10)  
     parser.add_argument('--threshold_cluster', type=int, default=10)  
     parser.add_argument('--weight_loss_CLT', type=float, default=1.0)
