@@ -325,7 +325,7 @@ class HiCOT(nn.Module):
 
         loss_ECR = self.get_loss_ECR()
         loss_TP = self.get_loss_TP(doc_embeddings, indices)
-        loss_DT = self.get_loss_DP(doc_embeddings)
+        loss_DT = self.get_loss_DT(doc_embeddings)
 
         loss_CLC = 0.0
         loss_CLT = 0.0
