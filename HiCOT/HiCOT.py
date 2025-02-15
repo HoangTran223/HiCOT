@@ -172,7 +172,7 @@ class HiCOT(nn.Module):
                 raise ValueError(f"Invalid metric_CL: {self.metric_CL}")
 
             loss = torch.clamp(pos_distance - neg_distances + margin, min=0.0)
-            loss_CLCe += loss.mean()
+            loss_CLC += loss.mean()
 
         loss_CLC *= self.weight_loss_CLC
         return loss_CLC
